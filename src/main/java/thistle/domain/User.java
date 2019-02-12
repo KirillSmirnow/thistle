@@ -2,6 +2,7 @@ package thistle.domain;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.springframework.security.oauth2.common.util.RandomValueStringGenerator;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotBlank;
@@ -28,6 +29,10 @@ public class User {
     @Size(max = 255)
     private String lastName;
 
+    @NotBlank
+    @Size(max = 128)
+    private String accessToken;
+
     public User(String firstName, String lastName) {
         this.firstName = firstName;
         this.lastName = lastName;
@@ -36,5 +41,11 @@ public class User {
     public void update(String firstName, String lastName) {
         this.firstName = firstName;
         this.lastName = lastName;
+    }
+
+    public String updateAccessToken() {
+        RandomValueStringGenerator stringGenerator = new RandomValueStringGenerator(128);
+        accessToken = stringGenerator.generate();
+        return accessToken;
     }
 }
