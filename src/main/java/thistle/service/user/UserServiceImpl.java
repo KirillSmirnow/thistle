@@ -19,12 +19,14 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public AccessToken vkAuth(VkAuth vkAuth) {
-        if (vkAuth.isGenuine(properties.getVk().getAppId(), properties.getVk().getSecretKey())) {
+        if (!vkAuth.isGenuine(properties.getVk().getAppId(), properties.getVk().getSecretKey())) {
             throw new ThistleException("Not authenticated");
         }
         Vk vk = vkRepository.findById(vkAuth.getVkId()).orElseGet(() -> createUser(vkAuth));
         User user = vk.getUser();
-        return new AccessToken(user.updateAccessToken());
+        user.updateAccessToken();
+        userRepository.save(user);
+        return new AccessToken(user.getAccessToken());
     }
 
     @Override
