@@ -30,7 +30,6 @@ public class Vk {
     @Size(max = 255)
     private String lastName;
 
-    @NotBlank
     @Size(max = 255)
     private String photo;
 

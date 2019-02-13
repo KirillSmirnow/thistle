@@ -29,7 +29,6 @@ public class User {
     @Size(max = 255)
     private String lastName;
 
-    @NotBlank
     @Size(max = 128)
     private String accessToken;
 
