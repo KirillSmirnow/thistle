@@ -3,6 +3,7 @@ package thistle.service.audio;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import thistle.Properties;
@@ -13,7 +14,9 @@ import thistle.repository.AudioRepository;
 
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static org.springframework.util.DigestUtils.md5DigestAsHex;
 
@@ -38,5 +41,13 @@ public class AudioServiceImpl implements AudioService {
         Files.createDirectories(Paths.get(properties.getStorage()));
         file.transferTo(Paths.get(properties.getStorage(), md5));
         audioRepository.save(new Audio(user, name, md5));
+    }
+
+    @Override
+    public List<UserAudio> getAudios(User user, int pageIndex, int pageSize) {
+        List<Audio> audios = audioRepository.findAllByOwner(user, PageRequest.of(pageIndex, pageSize)).getContent();
+        return audios.stream()
+                .map(UserAudio::of)
+                .collect(Collectors.toList());
     }
 }
