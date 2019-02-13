@@ -9,8 +9,9 @@ import org.springframework.context.annotation.Configuration;
 @ConfigurationProperties("thistle")
 public class Properties {
 
-    private String origin;
     private Vk vk = new Vk();
+    private String origin;
+    private String storage;
 
     @Data
     public static class Vk {
