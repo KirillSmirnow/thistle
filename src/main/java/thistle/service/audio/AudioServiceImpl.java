@@ -22,6 +22,7 @@ import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
+import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 import static org.springframework.util.DigestUtils.md5DigestAsHex;
 
 @Slf4j
@@ -80,11 +81,13 @@ public class AudioServiceImpl implements AudioService {
             String message = String.format("You already have such record named '%s' in your list", audio.get().getName());
             throw new ThistleException(message);
         }
+        if (Files.notExists(Paths.get(properties.getStorage(), md5))) {
+            Files.createDirectories(Paths.get(properties.getStorage()));
+            file.transferTo(Paths.get(properties.getStorage(), md5));
+        }
         if (name == null || name.isEmpty()) {
             name = eraseFileType(file.getOriginalFilename());
         }
-        Files.createDirectories(Paths.get(properties.getStorage()));
-        file.transferTo(Paths.get(properties.getStorage(), md5));
         audioRepository.save(new Audio(user, name, md5));
     }
 
@@ -100,11 +103,12 @@ public class AudioServiceImpl implements AudioService {
     private void processZipEntry(User user, ZipFile zip, ZipEntry entry) {
         if (entry.isDirectory()) return;
         String md5 = md5DigestAsHex(zip.getInputStream(entry));
-        if (!audioRepository.findByOwnerAndMd5(user, md5).isPresent()) {
-            String name = eraseFileType(entry.getName());
+        if (audioRepository.findByOwnerAndMd5(user, md5).isPresent()) return;
+        if (Files.notExists(Paths.get(properties.getStorage(), md5))) {
             Files.createDirectories(Paths.get(properties.getStorage()));
-            Files.copy(zip.getInputStream(entry), Paths.get(properties.getStorage(), md5));
-            audioRepository.save(new Audio(user, name, md5));
+            Files.copy(zip.getInputStream(entry), Paths.get(properties.getStorage(), md5), REPLACE_EXISTING);
         }
+        String name = eraseFileType(entry.getName());
+        audioRepository.save(new Audio(user, name, md5));
     }
 }
