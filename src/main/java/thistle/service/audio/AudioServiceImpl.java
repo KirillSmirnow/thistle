@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import thistle.Properties;
@@ -45,7 +46,8 @@ public class AudioServiceImpl implements AudioService {
 
     @Override
     public List<UserAudio> getAudios(User user, int pageIndex, int pageSize) {
-        List<Audio> audios = audioRepository.findAllByOwner(user, PageRequest.of(pageIndex, pageSize)).getContent();
+        Sort sort = Sort.by("id").descending();
+        List<Audio> audios = audioRepository.findAllByOwner(user, PageRequest.of(pageIndex, pageSize, sort)).getContent();
         return audios.stream()
                 .map(UserAudio::of)
                 .collect(Collectors.toList());
