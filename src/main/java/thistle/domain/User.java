@@ -1,5 +1,6 @@
 package thistle.domain;
 
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.springframework.security.oauth2.common.util.RandomValueStringGenerator;
@@ -13,6 +14,7 @@ import javax.validation.constraints.Size;
 @Table(name = "users")
 @Getter
 @NoArgsConstructor
+@EqualsAndHashCode(of = "id")
 public class User {
 
     @Id

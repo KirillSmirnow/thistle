@@ -54,6 +54,16 @@ public class AudioServiceImpl implements AudioService {
     }
 
     @Override
+    public void delete(User user, int audioId) {
+        Audio audio = audioRepository.findById(audioId)
+                .orElseThrow(() -> new ThistleException("Audio not found"));
+        if (!audio.getOwner().equals(user)) {
+            throw new ThistleException("Permission denied");
+        }
+        audioRepository.delete(audio);
+    }
+
+    @Override
     public List<UserAudio> getAudios(User user, int pageIndex, int pageSize) {
         Sort sort = Sort.by("id").descending();
         List<Audio> audios = audioRepository.findAllByOwner(user, PageRequest.of(pageIndex, pageSize, sort)).getContent();

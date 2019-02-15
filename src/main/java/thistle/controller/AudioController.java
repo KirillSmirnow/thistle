@@ -1,10 +1,7 @@
 package thistle.controller;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import thistle.security.BearerAuthentication;
 import thistle.service.audio.AudioService;
@@ -25,9 +22,14 @@ public class AudioController {
         audioService.upload(auth.getPrincipal(), file, name);
     }
 
+    @DeleteMapping("/api/audios/{id}")
+    public void delete(@PathVariable int id, BearerAuthentication auth) {
+        audioService.delete(auth.getPrincipal(), id);
+    }
+
     @GetMapping("/api/audios")
     public List<UserAudio> getAudios(@RequestParam(defaultValue = "0") int pageIndex,
-                                     @RequestParam(defaultValue = "100") int pageSize,
+                                     @RequestParam(defaultValue = "1000") int pageSize,
                                      BearerAuthentication auth) {
         return audioService.getAudios(auth.getPrincipal(), pageIndex, pageSize);
     }

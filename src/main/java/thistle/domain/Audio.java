@@ -1,5 +1,6 @@
 package thistle.domain;
 
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -12,6 +13,7 @@ import javax.validation.constraints.Size;
 @Table(name = "audios", uniqueConstraints = @UniqueConstraint(columnNames = {"owner_id", "md5"}))
 @Getter
 @NoArgsConstructor
+@EqualsAndHashCode(of = "id")
 public class Audio {
 
     @Id
