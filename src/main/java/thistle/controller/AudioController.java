@@ -6,6 +6,8 @@ import org.springframework.web.multipart.MultipartFile;
 import thistle.security.BearerAuthentication;
 import thistle.service.audio.AudioService;
 import thistle.service.audio.UserAudio;
+import thistle.service.audio.search.AudioSearchResult;
+import thistle.service.audio.search.AudioSearchService;
 
 import java.util.List;
 
@@ -14,6 +16,7 @@ import java.util.List;
 public class AudioController {
 
     private final AudioService audioService;
+    private final AudioSearchService audioSearchService;
 
     @PostMapping("/api/audios/upload")
     public void upload(@RequestParam(required = true) MultipartFile file,
@@ -32,5 +35,13 @@ public class AudioController {
                                      @RequestParam(defaultValue = "1000") int pageSize,
                                      BearerAuthentication auth) {
         return audioService.getAudios(auth.getPrincipal(), pageIndex, pageSize);
+    }
+
+    @PostMapping("/api/audios/search")
+    public AudioSearchResult search(@RequestParam(defaultValue = "") String query,
+                                    @RequestParam(defaultValue = "0") int pageIndex,
+                                    @RequestParam(defaultValue = "1000") int pageSize,
+                                    BearerAuthentication auth) {
+        return audioSearchService.search(auth.getPrincipal(), query, pageIndex, pageSize);
     }
 }

@@ -2,6 +2,7 @@ package thistle.service.audio;
 
 import lombok.Getter;
 import thistle.domain.Audio;
+import thistle.domain.AudioIndex;
 
 @Getter
 public class UserAudio {
@@ -18,5 +19,9 @@ public class UserAudio {
 
     public static UserAudio of(Audio audio) {
         return new UserAudio(audio.getId(), audio.getName(), audio.getMd5());
+    }
+
+    public static UserAudio of(AudioIndex audioIndex) {
+        return new UserAudio(audioIndex.getId(), audioIndex.getName(), audioIndex.getMd5());
     }
 }
