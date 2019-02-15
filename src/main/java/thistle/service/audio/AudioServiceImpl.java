@@ -12,6 +12,7 @@ import thistle.domain.Audio;
 import thistle.domain.User;
 import thistle.exception.ThistleException;
 import thistle.repository.AudioRepository;
+import thistle.service.audio.search.AudioSearchService;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -32,6 +33,7 @@ public class AudioServiceImpl implements AudioService {
 
     private final Properties properties;
     private final AudioRepository audioRepository;
+    private final AudioSearchService audioSearchService;
 
     private static String eraseFileType(String filename) {
         if (filename == null) return null;
@@ -62,6 +64,7 @@ public class AudioServiceImpl implements AudioService {
             throw new ThistleException("Permission denied");
         }
         audioRepository.delete(audio);
+        audioSearchService.remove(audio);
     }
 
     @Override
@@ -76,9 +79,9 @@ public class AudioServiceImpl implements AudioService {
     @SneakyThrows
     private void uploadSingleFile(User user, MultipartFile file, String name) {
         String md5 = md5DigestAsHex(file.getBytes());
-        Optional<Audio> audio = audioRepository.findByOwnerAndMd5(user, md5);
-        if (audio.isPresent()) {
-            String message = String.format("You already have such record named '%s' in your list", audio.get().getName());
+        Optional<Audio> check = audioRepository.findByOwnerAndMd5(user, md5);
+        if (check.isPresent()) {
+            String message = String.format("You already have such record named '%s' in your list", check.get().getName());
             throw new ThistleException(message);
         }
         if (Files.notExists(Paths.get(properties.getStorage(), md5))) {
@@ -88,7 +91,8 @@ public class AudioServiceImpl implements AudioService {
         if (name == null || name.isEmpty()) {
             name = eraseFileType(file.getOriginalFilename());
         }
-        audioRepository.save(new Audio(user, name, md5));
+        Audio audio = audioRepository.save(new Audio(user, name, md5));
+        audioSearchService.index(audio);
     }
 
     @SneakyThrows
@@ -109,6 +113,7 @@ public class AudioServiceImpl implements AudioService {
             Files.copy(zip.getInputStream(entry), Paths.get(properties.getStorage(), md5), REPLACE_EXISTING);
         }
         String name = eraseFileType(entry.getName());
-        audioRepository.save(new Audio(user, name, md5));
+        Audio audio = audioRepository.save(new Audio(user, name, md5));
+        audioSearchService.index(audio);
     }
 }

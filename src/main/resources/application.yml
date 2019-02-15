@@ -5,6 +5,9 @@ spring:
   jpa:
     hibernate:
       ddl-auto: update
+  data:
+    elasticsearch:
+      cluster-nodes: localhost:9300
   servlet:
     multipart:
       max-file-size: 100MB
