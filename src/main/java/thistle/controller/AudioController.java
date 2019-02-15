@@ -19,7 +19,9 @@ public class AudioController {
     private final AudioService audioService;
 
     @PostMapping("/api/audios/upload")
-    public void upload(@RequestParam MultipartFile file, @RequestParam String name, BearerAuthentication auth) {
+    public void upload(@RequestParam(required = true) MultipartFile file,
+                       @RequestParam(required = false) String name,
+                       BearerAuthentication auth) {
         audioService.upload(auth.getPrincipal(), file, name);
     }
 

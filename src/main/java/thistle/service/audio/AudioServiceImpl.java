@@ -2,7 +2,6 @@ package thistle.service.audio;
 
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
@@ -21,7 +20,6 @@ import java.util.stream.Collectors;
 
 import static org.springframework.util.DigestUtils.md5DigestAsHex;
 
-@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AudioServiceImpl implements AudioService {
@@ -32,13 +30,27 @@ public class AudioServiceImpl implements AudioService {
     @Override
     @SneakyThrows
     public void upload(User user, MultipartFile file, String name) {
-        log.info("Uploading file, type={}", file.getContentType());
+        if (file.getContentType() == null || !file.getContentType().startsWith("audio/")) {
+            throw new ThistleException("Wrong audio format");
+        }
+
         String md5 = md5DigestAsHex(file.getBytes());
         Optional<Audio> audio = audioRepository.findByOwnerAndMd5(user, md5);
         if (audio.isPresent()) {
             String message = String.format("You already have such record named '%s' in your list", audio.get().getName());
             throw new ThistleException(message);
         }
+
+        if (name == null || name.isEmpty()) {
+            name = file.getOriginalFilename();
+            if (name != null) {
+                int lastDotIndex = name.lastIndexOf('.');
+                if (lastDotIndex > 0) {
+                    name = name.substring(0, lastDotIndex);
+                }
+            }
+        }
+
         Files.createDirectories(Paths.get(properties.getStorage()));
         file.transferTo(Paths.get(properties.getStorage(), md5));
         audioRepository.save(new Audio(user, name, md5));
