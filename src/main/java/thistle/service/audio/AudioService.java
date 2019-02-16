@@ -9,6 +9,8 @@ public interface AudioService {
 
     void upload(User user, MultipartFile file, String name);
 
+    void uploadArchive(User user, MultipartFile archive);
+
     void delete(User user, int audioId);
 
     List<UserAudio> getAudios(User user, int pageIndex, int pageSize);
