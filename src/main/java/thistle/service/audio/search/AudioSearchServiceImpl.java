@@ -3,7 +3,6 @@ package thistle.service.audio.search;
 import lombok.RequiredArgsConstructor;
 import org.elasticsearch.common.unit.Fuzziness;
 import org.elasticsearch.index.query.QueryBuilder;
-import org.elasticsearch.index.query.QueryBuilders;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -15,6 +14,8 @@ import thistle.service.audio.UserAudio;
 
 import java.util.List;
 import java.util.stream.Collectors;
+
+import static org.elasticsearch.index.query.QueryBuilders.*;
 
 @Service
 @RequiredArgsConstructor
@@ -35,18 +36,23 @@ public class AudioSearchServiceImpl implements AudioSearchService {
     @Override
     public AudioSearchResult search(User user, String query, int pageIndex, int pageSize) {
         Pageable pageable = PageRequest.of(pageIndex, pageSize);
-        QueryBuilder beCurrentUser = QueryBuilders.termQuery("userId", user.getId());
-        QueryBuilder matchPhrase = QueryBuilders.matchQuery("name", query)
+        QueryBuilder beCurrentUser = termQuery("userId", user.getId());
+        QueryBuilder matchExactly = matchPhraseQuery("name", query);
+        QueryBuilder matchLoosely = matchQuery("name", query)
                 .prefixLength(3)
                 .fuzziness(Fuzziness.AUTO)
                 .analyzer("english")
                 .analyzer("russian");
-        QueryBuilder searchMine = QueryBuilders.boolQuery()
+        QueryBuilder searchMine = boolQuery()
                 .must(beCurrentUser)
-                .must(matchPhrase);
-        QueryBuilder searchOthers = QueryBuilders.boolQuery()
+                .should(matchExactly)
+                .should(matchLoosely)
+                .minimumShouldMatch(1);
+        QueryBuilder searchOthers = boolQuery()
                 .mustNot(beCurrentUser)
-                .must(matchPhrase);
+                .should(matchExactly)
+                .should(matchLoosely)
+                .minimumShouldMatch(1);
         List<UserAudio> mine = audioIndexRepository.search(searchMine, pageable).getContent().stream()
                 .map(UserAudio::of)
                 .collect(Collectors.toList());
