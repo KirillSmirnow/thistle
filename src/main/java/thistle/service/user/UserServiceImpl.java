@@ -30,7 +30,9 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public Profile getProfile(User user) {
-        return Profile.of(user);
+        return Profile.of(userRepository.findById(user.getId())
+                .orElseThrow(() -> new ThistleException("User not found"))
+        );
     }
 
     private Vk createUser(VkAuth vkAuth) {
