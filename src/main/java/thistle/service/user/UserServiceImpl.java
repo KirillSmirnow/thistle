@@ -8,25 +8,24 @@ import thistle.domain.Vk;
 import thistle.exception.ThistleException;
 import thistle.repository.UserRepository;
 import thistle.repository.VkRepository;
+import thistle.security.UserInMemoryAuthorizationCodeServices;
 
 @Service
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
 
     private final Properties properties;
+    private final UserInMemoryAuthorizationCodeServices authorizationCodeServices;
     private final UserRepository userRepository;
     private final VkRepository vkRepository;
 
     @Override
-    public AccessToken vkAuth(VkAuth vkAuth) {
+    public String vkAuth(VkAuth vkAuth) {
         if (!vkAuth.isGenuine(properties.getVk().getAppId(), properties.getVk().getSecretKey())) {
             throw new ThistleException("Not authenticated");
         }
         Vk vk = vkRepository.findById(vkAuth.getVkId()).orElseGet(() -> createUser(vkAuth));
-        User user = vk.getUser();
-        user.updateAccessToken();
-        userRepository.save(user);
-        return new AccessToken(user.getAccessToken());
+        return authorizationCodeServices.createAuthorizationCode(vk.getUser().getId().toString());
     }
 
     @Override

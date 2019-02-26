@@ -49,4 +49,8 @@ public class User {
         accessToken = stringGenerator.generate();
         return accessToken;
     }
+
+    protected void setId(Integer id) {
+        this.id = id;
+    }
 }

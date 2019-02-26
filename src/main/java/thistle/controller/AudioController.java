@@ -1,9 +1,10 @@
 package thistle.controller;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import thistle.security.BearerAuthentication;
+import thistle.security.PseudoUser;
 import thistle.service.audio.AudioService;
 import thistle.service.audio.UserAudio;
 import thistle.service.audio.search.AudioSearchResult;
@@ -21,27 +22,27 @@ public class AudioController {
     @PostMapping("/api/audios/upload")
     public void upload(@RequestParam(required = true) MultipartFile file,
                        @RequestParam(required = false) String name,
-                       BearerAuthentication auth) {
-        audioService.upload(auth.getPrincipal(), file, name);
+                       Authentication auth) {
+        audioService.upload(PseudoUser.of(auth.getName()), file, name);
     }
 
     @DeleteMapping("/api/audios/{id}")
-    public void delete(@PathVariable int id, BearerAuthentication auth) {
-        audioService.delete(auth.getPrincipal(), id);
+    public void delete(@PathVariable int id, Authentication auth) {
+        audioService.delete(PseudoUser.of(auth.getName()), id);
     }
 
     @GetMapping("/api/audios")
     public List<UserAudio> getAudios(@RequestParam(defaultValue = "0") int pageIndex,
                                      @RequestParam(defaultValue = "1000") int pageSize,
-                                     BearerAuthentication auth) {
-        return audioService.getAudios(auth.getPrincipal(), pageIndex, pageSize);
+                                     Authentication auth) {
+        return audioService.getAudios(PseudoUser.of(auth.getName()), pageIndex, pageSize);
     }
 
     @PostMapping("/api/audios/search")
     public AudioSearchResult search(@RequestParam(defaultValue = "") String query,
                                     @RequestParam(defaultValue = "0") int pageIndex,
                                     @RequestParam(defaultValue = "1000") int pageSize,
-                                    BearerAuthentication auth) {
-        return audioSearchService.search(auth.getPrincipal(), query, pageIndex, pageSize);
+                                    Authentication auth) {
+        return audioSearchService.search(PseudoUser.of(auth.getName()), query, pageIndex, pageSize);
     }
 }

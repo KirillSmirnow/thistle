@@ -10,8 +10,8 @@ import org.springframework.context.annotation.Configuration;
 public class Properties {
 
     private Vk vk = new Vk();
-    private String origin;
     private String storage;
+    private String jwtSigningKey;
 
     @Data
     public static class Vk {
