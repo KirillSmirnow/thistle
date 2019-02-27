@@ -3,6 +3,7 @@ package thistle.domain;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import thistle.exception.ThistleException;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
@@ -55,6 +56,42 @@ public class Friendship {
     @Column(length = 10)
     @Enumerated(EnumType.STRING)
     private Bias bias;
+
+    private Friendship(User leftUser, User rightUser, Bias bias) {
+        this.leftUser = leftUser;
+        this.rightUser = rightUser;
+        this.bias = bias;
+    }
+
+    public static Friendship create(User follower, User followee) {
+        if (follower.getId() < followee.getId()) {
+            return new Friendship(follower, followee, Bias.LEFT);
+        }
+        if (follower.getId() > followee.getId()) {
+            return new Friendship(followee, follower, Bias.RIGHT);
+        }
+        throw new ThistleException("Self-follow is not allowed");
+    }
+
+    public void follow(User follower) {
+        if (follower.equals(leftUser) && bias == Bias.RIGHT ||
+                follower.equals(rightUser) && bias == Bias.LEFT) {
+            bias = Bias.MEDIUM;
+        }
+    }
+
+    /**
+     * @return true if there is no relationship between users left and the object must be destroyed,
+     * false otherwise
+     */
+    public boolean unfollow(User unfollower) {
+        if (bias == Bias.MEDIUM) {
+            bias = unfollower.equals(leftUser) ? Bias.RIGHT : Bias.LEFT;
+            return false;
+        }
+        return unfollower.equals(leftUser) && bias == Bias.LEFT ||
+                unfollower.equals(rightUser) && bias == Bias.RIGHT;
+    }
 
     public enum Bias {
         LEFT,
