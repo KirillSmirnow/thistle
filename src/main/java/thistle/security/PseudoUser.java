@@ -18,16 +18,6 @@ public class PseudoUser extends User {
     }
 
     @Override
-    public String updateAccessToken() {
-        throw new IllegalStateException();
-    }
-
-    @Override
-    public String getAccessToken() {
-        throw new IllegalStateException();
-    }
-
-    @Override
     public String getLastName() {
         throw new IllegalStateException();
     }
