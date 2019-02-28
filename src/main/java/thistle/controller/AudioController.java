@@ -19,7 +19,7 @@ public class AudioController {
     private final AudioService audioService;
     private final AudioSearchService audioSearchService;
 
-    @PostMapping("/api/audios/upload")
+    @PutMapping("/api/audios/upload")
     public void upload(@RequestParam(required = true) MultipartFile file,
                        @RequestParam(required = false) String name,
                        Authentication auth) {
@@ -38,7 +38,7 @@ public class AudioController {
         return audioService.getAudios(PseudoUser.of(auth.getName()), pageIndex, pageSize);
     }
 
-    @PostMapping("/api/audios/search")
+    @GetMapping("/api/audios/search")
     public AudioSearchResult search(@RequestParam(defaultValue = "") String query,
                                     @RequestParam(defaultValue = "0") int pageIndex,
                                     @RequestParam(defaultValue = "1000") int pageSize,
