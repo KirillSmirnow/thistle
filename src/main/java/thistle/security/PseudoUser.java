@@ -8,6 +8,10 @@ public class PseudoUser extends User {
         setId(id);
     }
 
+    public static PseudoUser of(int user) {
+        return new PseudoUser(user);
+    }
+
     public static PseudoUser of(String user) {
         return new PseudoUser(Integer.valueOf(user));
     }
