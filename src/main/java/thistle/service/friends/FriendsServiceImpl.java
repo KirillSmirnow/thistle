@@ -4,9 +4,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import thistle.domain.Friendship;
 import thistle.domain.User;
+import thistle.domain.Vk;
 import thistle.exception.ThistleException;
 import thistle.repository.FriendshipRepository;
 import thistle.repository.UserRepository;
+import thistle.repository.VkRepository;
 import thistle.service.user.Profile;
 
 import java.util.List;
@@ -19,12 +21,20 @@ public class FriendsServiceImpl implements FriendsService {
 
     private final FriendshipRepository friendshipRepository;
     private final UserRepository userRepository;
+    private final VkRepository vkRepository;
 
     private static List<Profile> friendshipsToProfiles(List<Friendship> friendships, User user) {
         return friendships.stream()
                 .map(friendship -> friendship.getUserExcluding(user))
                 .map(Profile::of)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public void addVkFriend(User user, long targetVkId) {
+        Vk vk = vkRepository.findById(targetVkId)
+                .orElseThrow(() -> new ThistleException("This user isn't yet registered on Thistle"));
+        follow(user, vk.getUser().getId());
     }
 
     @Override
