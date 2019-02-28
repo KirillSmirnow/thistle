@@ -7,8 +7,11 @@ import thistle.domain.User;
 import thistle.exception.ThistleException;
 import thistle.repository.FriendshipRepository;
 import thistle.repository.UserRepository;
+import thistle.service.user.Profile;
 
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -17,13 +20,20 @@ public class FriendsServiceImpl implements FriendsService {
     private final FriendshipRepository friendshipRepository;
     private final UserRepository userRepository;
 
+    private static List<Profile> friendshipsToProfiles(List<Friendship> friendships, User user) {
+        return friendships.stream()
+                .map(friendship -> friendship.getUserExcluding(user))
+                .map(Profile::of)
+                .collect(Collectors.toList());
+    }
+
     @Override
     public void follow(User user, int targetId) {
         User target = getUser(targetId);
         Optional<Friendship> friendshipOpt = friendshipRepository.find(user, target);
         if (friendshipOpt.isPresent()) {
             Friendship friendship = friendshipOpt.get();
-            friendship.follow(user);
+            friendship.followBy(user);
             friendshipRepository.save(friendship);
         } else {
             friendshipRepository.save(Friendship.create(user, target));
@@ -34,7 +44,7 @@ public class FriendsServiceImpl implements FriendsService {
     public void unfollow(User user, int targetId) {
         User target = getUser(targetId);
         friendshipRepository.find(user, target).ifPresent(friendship -> {
-            boolean mustDestroy = friendship.unfollow(user);
+            boolean mustDestroy = friendship.unfollowBy(user);
             if (mustDestroy) {
                 friendshipRepository.delete(friendship);
             } else {
@@ -45,7 +55,11 @@ public class FriendsServiceImpl implements FriendsService {
 
     @Override
     public Friendships getFriendships(User user) {
-        return null;
+        return new Friendships(
+                friendshipsToProfiles(friendshipRepository.findFriends(user), user),
+                friendshipsToProfiles(friendshipRepository.findIncomingRequests(user), user),
+                friendshipsToProfiles(friendshipRepository.findOutgoingRequests(user), user)
+        );
     }
 
     private User getUser(int id) {

@@ -39,7 +39,7 @@ public class FriendsServiceFriendsStateTest {
         friend2 = userRepository.save(new User("Friend2", "Friend2"));
 
         Friendship friendship = Friendship.create(friend1, friend2);
-        friendship.follow(friend2);
+        friendship.followBy(friend2);
         friendshipRepository.save(friendship);
 
         assertTrue(friendshipRepository.find(friend1, friend2).isPresent());
