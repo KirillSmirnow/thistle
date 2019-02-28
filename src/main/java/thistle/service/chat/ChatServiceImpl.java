@@ -1,10 +1,17 @@
 package thistle.service.chat;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import thistle.domain.Chat;
+import thistle.domain.ChatMessage;
 import thistle.domain.User;
+import thistle.exception.ThistleException;
+import thistle.repository.ChatMessageRepository;
 import thistle.repository.ChatRepository;
+import thistle.repository.UserRepository;
 import thistle.security.PseudoUser;
 import thistle.service.user.Profile;
 
@@ -18,6 +25,8 @@ import java.util.stream.Collectors;
 public class ChatServiceImpl implements ChatService {
 
     private final ChatRepository chatRepository;
+    private final ChatMessageRepository chatMessageRepository;
+    private final UserRepository userRepository;
 
     @Override
     public void create(User user, ChatCreate chatCreate) {
@@ -39,10 +48,19 @@ public class ChatServiceImpl implements ChatService {
 
     @Override
     public void sendMessage(User user, UUID chatId, String text) {
+        Chat chat = chatRepository.findById(chatId)
+                .orElseThrow(() -> new ThistleException("Chat not found"));
+        ChatMessage chatMessage = ChatMessage.text(chat, user, text);
+        chatMessageRepository.save(chatMessage);
     }
 
     @Override
-    public List<Message> getMessages(User user, UUID chatId) {
-        return null;
+    public List<Message> getMessages(User user, UUID chatId, int pageIndex, int pageSize) {
+        Sort sort = Sort.by("dateTime").descending();
+        Pageable pageable = PageRequest.of(pageIndex, pageSize, sort);
+        List<ChatMessage> messages = chatMessageRepository.findByChatId(chatId, pageable).getContent();
+        return messages.stream()
+                .map(message -> Message.of(message, userRepository.getOne(message.getAuthorId())))
+                .collect(Collectors.toList());
     }
 }

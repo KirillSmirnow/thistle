@@ -13,5 +13,5 @@ public interface ChatService {
 
     void sendMessage(User user, UUID chatId, String text);
 
-    List<Message> getMessages(User user, UUID chatId);
+    List<Message> getMessages(User user, UUID chatId, int pageIndex, int pageSize);
 }

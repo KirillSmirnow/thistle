@@ -34,7 +34,10 @@ public class ChatController {
     }
 
     @GetMapping("/api/chats/{chatId}/messages")
-    public List<Message> getMessages(@PathVariable UUID chatId, Authentication auth) {
-        return chatService.getMessages(PseudoUser.of(auth.getName()), chatId);
+    public List<Message> getMessages(@PathVariable UUID chatId,
+                                     @RequestParam(defaultValue = "0") int pageIndex,
+                                     @RequestParam(defaultValue = "1000") int pageSize,
+                                     Authentication auth) {
+        return chatService.getMessages(PseudoUser.of(auth.getName()), chatId, pageIndex, pageSize);
     }
 }
