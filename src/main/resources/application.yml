@@ -8,6 +8,8 @@ spring:
   data:
     elasticsearch:
       cluster-nodes: localhost:9300
+    mongodb:
+      database: thistle
   servlet:
     multipart:
       max-file-size: 100MB
