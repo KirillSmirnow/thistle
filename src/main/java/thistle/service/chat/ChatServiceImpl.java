@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import thistle.domain.Chat;
 import thistle.domain.ChatMessage;
@@ -27,6 +28,7 @@ public class ChatServiceImpl implements ChatService {
     private final ChatRepository chatRepository;
     private final ChatMessageRepository chatMessageRepository;
     private final UserRepository userRepository;
+    private final SimpMessagingTemplate messagingTemplate;
 
     @Override
     public void create(User user, ChatCreate chatCreate) {
@@ -53,7 +55,9 @@ public class ChatServiceImpl implements ChatService {
         if (text == null || text.trim().isEmpty()) {
             throw new ThistleException("Text must not be blank");
         }
-        ChatMessage chatMessage = ChatMessage.text(chat, user, text);
+        User author = userRepository.getOne(user.getId());
+        ChatMessage chatMessage = ChatMessage.text(chat, author, text);
+        messagingTemplate.convertAndSend("/chats/" + chatId, Message.of(chatMessage, author));
         chatMessageRepository.save(chatMessage);
     }
 
