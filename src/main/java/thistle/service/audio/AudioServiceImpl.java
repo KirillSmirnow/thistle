@@ -66,13 +66,13 @@ public class AudioServiceImpl implements AudioService {
 
     @Override
     public void delete(User user, int audioId) {
-        Audio audio = audioRepository.findById(audioId)
-                .orElseThrow(() -> new ThistleException("Audio not found"));
-        if (!audio.getOwner().equals(user)) {
-            throw new ThistleException("Permission denied");
-        }
-        audioRepository.delete(audio);
-        audioSearchService.remove(audio);
+        audioRepository.findById(audioId).ifPresent(audio -> {
+            if (!audio.getOwner().equals(user)) {
+                throw new ThistleException("Permission denied");
+            }
+            audioRepository.delete(audio);
+            audioSearchService.remove(audio);
+        });
     }
 
     @Override

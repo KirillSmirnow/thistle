@@ -1,6 +1,8 @@
 package thistle.service.audio.search;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.elasticsearch.ElasticsearchException;
 import org.elasticsearch.common.unit.Fuzziness;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.springframework.data.domain.PageRequest;
@@ -13,10 +15,11 @@ import thistle.repository.AudioIndexRepository;
 import thistle.service.audio.UserAudio;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
+import static java.util.stream.Collectors.toList;
 import static org.elasticsearch.index.query.QueryBuilders.*;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AudioSearchServiceImpl implements AudioSearchService {
@@ -25,12 +28,20 @@ public class AudioSearchServiceImpl implements AudioSearchService {
 
     @Override
     public void index(Audio audio) {
-        audioIndexRepository.save(AudioIndex.of(audio));
+        try {
+            audioIndexRepository.save(AudioIndex.of(audio));
+        } catch (ElasticsearchException e) {
+            log.warn("ES error: {}", e.getMessage());
+        }
     }
 
     @Override
     public void remove(Audio audio) {
-        audioIndexRepository.delete(AudioIndex.of(audio));
+        try {
+            audioIndexRepository.delete(AudioIndex.of(audio));
+        } catch (ElasticsearchException e) {
+            log.warn("ES error: {}", e.getMessage());
+        }
     }
 
     @Override
@@ -53,12 +64,17 @@ public class AudioSearchServiceImpl implements AudioSearchService {
                 .should(matchExactly)
                 .should(matchLoosely)
                 .minimumShouldMatch(1);
-        List<UserAudio> mine = audioIndexRepository.search(searchMine, pageable).getContent().stream()
-                .map(UserAudio::of)
-                .collect(Collectors.toList());
-        List<UserAudio> others = audioIndexRepository.search(searchOthers, pageable).getContent().stream()
-                .map(UserAudio::of)
-                .collect(Collectors.toList());
-        return new AudioSearchResult(mine, others);
+        try {
+            List<UserAudio> mine = audioIndexRepository.search(searchMine, pageable).getContent().stream()
+                    .map(UserAudio::of)
+                    .collect(toList());
+            List<UserAudio> others = audioIndexRepository.search(searchOthers, pageable).getContent().stream()
+                    .map(UserAudio::of)
+                    .collect(toList());
+            return new AudioSearchResult(mine, others);
+        } catch (ElasticsearchException e) {
+            log.warn("ES error: {}", e.getMessage());
+            return AudioSearchResult.empty();
+        }
     }
 }
