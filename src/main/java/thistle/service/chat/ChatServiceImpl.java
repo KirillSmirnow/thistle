@@ -50,6 +50,9 @@ public class ChatServiceImpl implements ChatService {
     public void sendMessage(User user, UUID chatId, String text) {
         Chat chat = chatRepository.findById(chatId)
                 .orElseThrow(() -> new ThistleException("Chat not found"));
+        if (text == null || text.trim().isEmpty()) {
+            throw new ThistleException("Text must not be blank");
+        }
         ChatMessage chatMessage = ChatMessage.text(chat, user, text);
         chatMessageRepository.save(chatMessage);
     }
